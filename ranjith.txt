@@ -1,0 +1,38 @@
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  IMAGE_NAME: "registry.gitlab.com/your-namespace/hello-world"
+  DEPLOY_SERVER: "your-server-ip"
+  DEPLOY_USER: "your-user"
+  DEPLOY_PATH: "/var/www/hello-world"
+
+before_script:
+  - echo "Starting CI/CD pipeline..."
+
+build:
+  stage: build
+  script:
+    - echo "Building Docker image..."
+    - docker build -t $IMAGE_NAME:latest .
+  only:
+    - main  # Run only on the main branch
+
+test:
+  stage: test
+  script:
+    - echo "Running tests..."
+    - npm install
+    - npm test  # Assumes tests are set up
+  only:
+    - main
+
+deploy:
+  stage: deploy
+  only:
+    - main
+  script:
+    - echo "Deploying application..."
+    - ssh $DEPLOY_USER@$DEPLOY_SERVER "cd $DEPLOY_PATH && git pull && docker-compose up -d --build"
